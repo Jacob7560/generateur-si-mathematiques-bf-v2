@@ -33,7 +33,7 @@ jobs:
           unzip -q gradle-8.9-bin.zip
 
       - name: Compiler l'application
-run: ./gradle-8.9/bin/gradle --no-daemon --stacktrace assembleDebug
+        run: ./gradle-8.9/bin/gradle --no-daemon --stacktrace assembleDebug
 
       - name: Publier l'APK
         if: success()
@@ -41,4 +41,3 @@ run: ./gradle-8.9/bin/gradle --no-daemon --stacktrace assembleDebug
         with:
           name: Generateur-SI-Maths-BF
           path: app/build/outputs/apk/debug/app-debug.apk
-          
