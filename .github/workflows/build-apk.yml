@@ -32,7 +32,20 @@ jobs:
         with:
           path: ~/.android/debug.keystore
           key: generateur-si-maths-bf-signature-v1
-
+          
+      - name: Creer la cle de signature si absente
+        run: |
+          mkdir -p "$HOME/.android"
+          if [ ! -f "$HOME/.android/debug.keystore" ]; then
+            keytool -genkeypair -v \
+              -keystore "$HOME/.android/debug.keystore" \
+              -storepass android \
+              -alias androiddebugkey \
+              -keypass android \
+              -dname "CN=Android Debug,O=Android,C=US" \
+              -keyalg RSA -keysize 2048 -validity 10000
+          fi
+          
       - name: Installer Gradle
         run: |
           wget https://services.gradle.org/distributions/gradle-8.9-bin.zip
