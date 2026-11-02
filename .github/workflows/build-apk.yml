@@ -27,6 +27,12 @@ jobs:
       - name: Installer le SDK Android
         run: sdkmanager "platforms;android-35" "build-tools;35.0.0"
 
+      - name: Restaurer la cle de signature
+        uses: actions/cache@v4
+        with:
+          path: ~/.android/debug.keystore
+          key: generateur-si-maths-bf-signature-v1
+
       - name: Installer Gradle
         run: |
           wget https://services.gradle.org/distributions/gradle-8.9-bin.zip
@@ -41,3 +47,4 @@ jobs:
         with:
           name: Generateur-SI-Maths-BF
           path: app/build/outputs/apk/debug/app-debug.apk
+          
