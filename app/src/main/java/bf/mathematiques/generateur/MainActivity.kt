@@ -8,11 +8,15 @@ import android.view.Gravity
 import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.TextView
+import android.widget.ScrollView
 
 class MainActivity : Activity() {
 
     private val bleu = Color.rgb(20, 65, 120)
     private val fond = Color.rgb(245, 248, 252)
+
+    private var modeChoisi = ""
+    private var classeChoisie = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -81,18 +85,16 @@ class MainActivity : Activity() {
         val boutonIA = Button(this).apply {
             text = "Intelligence artificielle en ligne"
             setOnClickListener {
-                afficherConfirmation(
-                    "Mode IA en ligne sélectionné"
-                )
+                modeChoisi = "IA en ligne"
+                afficherChoixClasse()
             }
         }
 
         val boutonHorsLigne = Button(this).apply {
             text = "Banque hors connexion"
             setOnClickListener {
-                afficherConfirmation(
-                    "Mode hors connexion sélectionné"
-                )
+                modeChoisi = "Hors connexion"
+                afficherChoixClasse()
             }
         }
 
@@ -112,24 +114,120 @@ class MainActivity : Activity() {
         setContentView(layout)
     }
 
-    private fun afficherConfirmation(message: String) {
-        val layout = creerLayout()
+    private fun afficherChoixClasse() {
+        val contenu = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(24, 24, 24, 24)
+            setBackgroundColor(fond)
+        }
 
-        val texte = creerTexte(message, 22f)
+        contenu.addView(
+            creerTexte("Choisir une classe", 24f)
+        )
 
-        val information = creerTexte(
-            "Cette fonctionnalité sera développée " +
-            "dans les prochaines étapes.", 16f
+        contenu.addView(
+            creerTexte(
+                "Mode sélectionné : $modeChoisi", 16f
+            )
+        )
+
+        ajouterSection(contenu, "ENSEIGNEMENT PRIMAIRE")
+
+        ajouterClasses(
+            contenu,
+            listOf("CP1", "CP2", "CE1", "CE2", "CM1", "CM2")
+        )
+
+        ajouterSection(contenu, "PREMIER CYCLE")
+
+        ajouterClasses(
+            contenu,
+            listOf("6e", "5e", "4e", "3e")
+        )
+
+        ajouterSection(contenu, "SECOND CYCLE")
+
+        ajouterClasses(
+            contenu,
+            listOf(
+                "2nde A", "2nde C",
+                "1ère A", "1ère C", "1ère D",
+                "Tle A", "Tle C", "Tle D"
+            )
         )
 
         val retour = Button(this).apply {
-            text = "Revenir aux modes"
+            text = "Retour aux modes"
             setOnClickListener {
                 afficherChoixMode()
             }
         }
 
-        layout.addView(texte)
+        contenu.addView(retour)
+
+        val defilement = ScrollView(this).apply {
+            addView(contenu)
+        }
+
+        setContentView(defilement)
+    }
+
+    private fun ajouterSection(
+        layout: LinearLayout,
+        titre: String
+    ) {
+        layout.addView(
+            creerTexte(titre, 18f)
+        )
+    }
+
+    private fun ajouterClasses(
+        layout: LinearLayout,
+        classes: List<String>
+    ) {
+        for (classe in classes) {
+            val bouton = Button(this).apply {
+                text = classe
+                setOnClickListener {
+                    classeChoisie = classe
+                    afficherConfirmation()
+                }
+            }
+
+            layout.addView(bouton)
+        }
+    }
+
+    private fun afficherConfirmation() {
+        val layout = creerLayout()
+
+        val titre = creerTexte(
+            "Sélection réussie !", 24f
+        )
+
+        val mode = creerTexte(
+            "Mode : $modeChoisi", 18f
+        )
+
+        val classe = creerTexte(
+            "Classe : $classeChoisie", 22f
+        )
+
+        val information = creerTexte(
+            "Nous allons maintenant préparer " +
+            "les notions mathématiques de cette classe.", 16f
+        )
+
+        val retour = Button(this).apply {
+            text = "Changer de classe"
+            setOnClickListener {
+                afficherChoixClasse()
+            }
+        }
+
+        layout.addView(titre)
+        layout.addView(mode)
+        layout.addView(classe)
         layout.addView(information)
         layout.addView(retour)
 
