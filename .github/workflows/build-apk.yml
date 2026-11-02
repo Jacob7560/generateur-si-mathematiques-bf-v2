@@ -1,4 +1,3 @@
-
 name: Construire l'APK Android
 
 on:
@@ -28,36 +27,31 @@ jobs:
         run: sdkmanager "platforms;android-35" "build-tools;35.0.0"
 
       - name: Restaurer la cle de signature
-        uses: actions/cache@v4
-        with:
-          path: ~/.android/debug.keystore
-          key: generateur-si-maths-bf-signature-v1
-          
-      - name: Creer la cle de signature si absente
+        env:
+          SIGNING_KEYSTORE_BASE64: ${{ secrets.SIGNING_KEYSTORE_BASE64 }}
         run: |
-          mkdir -p "$HOME/.android"
-          if [ ! -f "$HOME/.android/debug.keystore" ]; then
-            keytool -genkeypair -v \
-              -keystore "$HOME/.android/debug.keystore" \
-              -storepass android \
-              -alias androiddebugkey \
-              -keypass android \
-              -dname "CN=Android Debug,O=Android,C=US" \
-              -keyalg RSA -keysize 2048 -validity 10000
+          if [ -z "$SIGNING_KEYSTORE_BASE64" ]; then
+            echo "La cle de signature est absente."
+            exit 1
           fi
-          
+          echo "$SIGNING_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/release-keystore.p12"
+          echo "SIGNING_KEYSTORE_PATH=$RUNNER_TEMP/release-keystore.p12" >> "$GITHUB_ENV"
+
       - name: Installer Gradle
         run: |
           wget https://services.gradle.org/distributions/gradle-8.9-bin.zip
           unzip -q gradle-8.9-bin.zip
 
       - name: Compiler l'application
-        run: ./gradle-8.9/bin/gradle --no-daemon --stacktrace assembleDebug
+        env:
+          SIGNING_KEYSTORE_PASSWORD: ${{ secrets.SIGNING_KEYSTORE_PASSWORD }}
+          SIGNING_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
+          SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
+        run: ./gradle-8.9/bin/gradle --no-daemon --stacktrace assembleRelease
 
       - name: Publier l'APK
         if: success()
         uses: actions/upload-artifact@v4
         with:
           name: Generateur-SI-Maths-BF
-          path: app/build/outputs/apk/debug/app-debug.apk
-          
+          path: app/build/outputs/apk/release/app-release.apk
