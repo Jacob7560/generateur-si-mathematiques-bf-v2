@@ -5,7 +5,9 @@ import android.app.Activity
 import android.os.Bundle
 import android.graphics.Color
 import android.view.Gravity
+import android.view.View
 import android.widget.Button
+import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.ScrollView
@@ -17,6 +19,11 @@ class MainActivity : Activity() {
 
     private var modeChoisi = ""
     private var classeChoisie = ""
+
+    private lateinit var listeNotions: LinearLayout
+    private lateinit var precisions: EditText
+
+    private val champsNotions = mutableListOf<EditText>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -48,13 +55,15 @@ class MainActivity : Activity() {
     private fun afficherAccueil() {
         val layout = creerLayout()
 
-        val titre = creerTexte(
-            "Générateur SI Maths BF", 26f
+        layout.addView(
+            creerTexte("Générateur SI Maths BF", 26f)
         )
 
-        val description = creerTexte(
-            "Créons des situations d'intégration " +
-            "adaptées au Burkina Faso.", 17f
+        layout.addView(
+            creerTexte(
+                "Créons des situations d'intégration " +
+                "adaptées au Burkina Faso.", 17f
+            )
         )
 
         val bouton = Button(this).apply {
@@ -64,22 +73,17 @@ class MainActivity : Activity() {
             }
         }
 
-        layout.addView(titre)
-        layout.addView(description)
         layout.addView(bouton)
-
         setContentView(layout)
     }
 
     private fun afficherChoixMode() {
         val layout = creerLayout()
 
-        val titre = creerTexte(
-            "Choisir le mode de fonctionnement", 22f
-        )
-
-        val description = creerTexte(
-            "Comment souhaites-tu créer tes situations ?", 16f
+        layout.addView(
+            creerTexte(
+                "Choisir le mode de fonctionnement", 22f
+            )
         )
 
         val boutonIA = Button(this).apply {
@@ -98,18 +102,8 @@ class MainActivity : Activity() {
             }
         }
 
-        val retour = Button(this).apply {
-            text = "Retour"
-            setOnClickListener {
-                afficherAccueil()
-            }
-        }
-
-        layout.addView(titre)
-        layout.addView(description)
         layout.addView(boutonIA)
         layout.addView(boutonHorsLigne)
-        layout.addView(retour)
 
         setContentView(layout)
     }
@@ -126,9 +120,7 @@ class MainActivity : Activity() {
         )
 
         contenu.addView(
-            creerTexte(
-                "Mode sélectionné : $modeChoisi", 16f
-            )
+            creerTexte("Mode : $modeChoisi", 16f)
         )
 
         ajouterSection(contenu, "ENSEIGNEMENT PRIMAIRE")
@@ -156,10 +148,120 @@ class MainActivity : Activity() {
             )
         )
 
-        val retour = Button(this).apply {
-            text = "Retour aux modes"
+        val defilement = ScrollView(this).apply {
+            addView(contenu)
+        }
+
+        setContentView(defilement)
+    }
+
+    private fun ajouterSection(
+        layout: LinearLayout,
+        titre: String
+    ) {
+        layout.addView(creerTexte(titre, 18f))
+    }
+
+    private fun ajouterClasses(
+        layout: LinearLayout,
+        classes: List<String>
+    ) {
+        for (classe in classes) {
+            val bouton = Button(this).apply {
+                text = classe
+                setOnClickListener {
+                    classeChoisie = classe
+                    afficherSaisieNotions()
+                }
+            }
+
+            layout.addView(bouton)
+        }
+    }
+
+    private fun afficherSaisieNotions() {
+        champsNotions.clear()
+
+        val contenu = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(24, 24, 24, 24)
+            setBackgroundColor(fond)
+        }
+
+        contenu.addView(
+            creerTexte("Notions mathématiques", 24f)
+        )
+
+        contenu.addView(
+            creerTexte("Classe : $classeChoisie", 18f)
+        )
+
+        contenu.addView(
+            creerTexte(
+                "Saisissez les notions que vous souhaitez " +
+                "mobiliser dans votre situation.", 16f
+            )
+        )
+
+        listeNotions = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+        }
+
+        contenu.addView(listeNotions)
+
+        ajouterChampNotion()
+
+        val ajouter = Button(this).apply {
+            text = "+ Ajouter une notion"
             setOnClickListener {
-                afficherChoixMode()
+                ajouterChampNotion()
+            }
+        }
+
+        contenu.addView(ajouter)
+
+        contenu.addView(
+            creerTexte(
+                "Précisions ou orientations pédagogiques " +
+                "(facultatif)", 17f
+            )
+        )
+
+        precisions = EditText(this).apply {
+            hint = "Ajoutez vos indications pédagogiques..."
+            minLines = 3
+            gravity = Gravity.TOP
+            setTextColor(Color.BLACK)
+            setBackgroundColor(Color.WHITE)
+        }
+
+        contenu.addView(precisions)
+
+        val continuer = Button(this).apply {
+            text = "Continuer"
+            setOnClickListener {
+                val notions = champsNotions
+                    .map { it.text.toString().trim() }
+                    .filter { it.isNotEmpty() }
+
+                if (notions.isEmpty()) {
+                    champsNotions.first().error =
+                        "Saisissez au moins une notion"
+                } else {
+                    afficherConfirmationNotions(
+                        notions,
+                        precisions.text.toString().trim()
+                    )
+                }
+            }
+        }
+
+        contenu.addView(continuer)
+
+        val retour = Button(this).apply {
+            text = "Changer de classe"
+            setOnClickListener {
+                afficherChoixClasse()
             }
         }
 
@@ -172,65 +274,88 @@ class MainActivity : Activity() {
         setContentView(defilement)
     }
 
-    private fun ajouterSection(
-        layout: LinearLayout,
-        titre: String
-    ) {
-        layout.addView(
-            creerTexte(titre, 18f)
-        )
-    }
+    private fun ajouterChampNotion() {
+        val numero = champsNotions.size + 1
 
-    private fun ajouterClasses(
-        layout: LinearLayout,
-        classes: List<String>
-    ) {
-        for (classe in classes) {
-            val bouton = Button(this).apply {
-                text = classe
-                setOnClickListener {
-                    classeChoisie = classe
-                    afficherConfirmation()
+        val champ = EditText(this).apply {
+            hint = "Notion mathématique $numero"
+            textSize = 16f
+            setTextColor(Color.BLACK)
+            setBackgroundColor(Color.WHITE)
+        }
+
+        champsNotions.add(champ)
+        listeNotions.addView(champ)
+
+        val supprimer = Button(this).apply {
+            text = "Supprimer cette notion"
+            setOnClickListener {
+                if (champsNotions.size > 1) {
+                    champsNotions.remove(champ)
+                    listeNotions.removeView(champ)
+                    listeNotions.removeView(this)
+                }
+                else {
+                    champ.text.clear()
+                    champ.error = "Conservez au moins un champ"
                 }
             }
-
-            layout.addView(bouton)
         }
+
+        listeNotions.addView(supprimer)
     }
 
-    private fun afficherConfirmation() {
+    private fun afficherConfirmationNotions(
+        notions: List<String>,
+        indications: String
+    ) {
         val layout = creerLayout()
 
-        val titre = creerTexte(
-            "Sélection réussie !", 24f
+        layout.addView(
+            creerTexte("Vos choix sont enregistrés", 23f)
         )
 
-        val mode = creerTexte(
-            "Mode : $modeChoisi", 18f
+        layout.addView(
+            creerTexte("Mode : $modeChoisi", 17f)
         )
 
-        val classe = creerTexte(
-            "Classe : $classeChoisie", 22f
+        layout.addView(
+            creerTexte("Classe : $classeChoisie", 18f)
         )
 
-        val information = creerTexte(
-            "Nous allons maintenant préparer " +
-            "les notions mathématiques de cette classe.", 16f
+        layout.addView(
+            creerTexte("Notions choisies :", 19f)
+        )
+
+        notions.forEachIndexed { index, notion ->
+            layout.addView(
+                creerTexte("${index + 1}. $notion", 16f)
+            )
+        }
+
+        if (indications.isNotEmpty()) {
+            layout.addView(
+                creerTexte(
+                    "Précisions : $indications", 15f
+                )
+            )
+        }
+
+        layout.addView(
+            creerTexte(
+                "La prochaine étape permettra de " +
+                "préparer la situation d'intégration.", 16f
+            )
         )
 
         val retour = Button(this).apply {
-            text = "Changer de classe"
+            text = "Modifier les notions"
             setOnClickListener {
-                afficherChoixClasse()
+                afficherSaisieNotions()
             }
         }
 
-        layout.addView(titre)
-        layout.addView(mode)
-        layout.addView(classe)
-        layout.addView(information)
         layout.addView(retour)
-
         setContentView(layout)
     }
 }
