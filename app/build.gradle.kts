@@ -1,4 +1,3 @@
-
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -12,8 +11,31 @@ android {
         applicationId = "bf.mathematiques.generateur"
         minSdk = 23
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 2
+        versionName = "1.1"
+    }
+
+    signingConfigs {
+        create("release") {
+            storeFile = file(
+                System.getenv("SIGNING_KEYSTORE_PATH")
+                    ?: "release-keystore.p12"
+            )
+            storePassword =
+                System.getenv("SIGNING_KEYSTORE_PASSWORD")
+            keyAlias =
+                System.getenv("SIGNING_KEY_ALIAS")
+            keyPassword =
+                System.getenv("SIGNING_KEY_PASSWORD")
+        }
+    }
+
+    buildTypes {
+        getByName("release") {
+            signingConfig =
+                signingConfigs.getByName("release")
+            isMinifyEnabled = false
+        }
     }
 
     compileOptions {
