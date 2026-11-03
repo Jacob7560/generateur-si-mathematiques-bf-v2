@@ -306,56 +306,115 @@ class MainActivity : Activity() {
     }
 
     private fun afficherConfirmationNotions(
-        notions: List<String>,
-        indications: String
-    ) {
-        val layout = creerLayout()
+    notions: List<String>,
+    indications: String
+) {
+    val layout = creerLayout()
 
+    layout.addView(
+        creerTexte("Préparation de la situation", 23f)
+    )
+
+    layout.addView(
+        creerTexte("Mode : $modeChoisi", 17f)
+    )
+
+    layout.addView(
+        creerTexte("Classe : $classeChoisie", 18f)
+    )
+
+    layout.addView(
+        creerTexte("Notions à mobiliser :", 19f)
+    )
+
+    notions.forEachIndexed { index, notion ->
         layout.addView(
-            creerTexte("Vos choix sont enregistrés", 23f)
+            creerTexte("${index + 1}. $notion", 16f)
         )
-
-        layout.addView(
-            creerTexte("Mode : $modeChoisi", 17f)
-        )
-
-        layout.addView(
-            creerTexte("Classe : $classeChoisie", 18f)
-        )
-
-        layout.addView(
-            creerTexte("Notions choisies :", 19f)
-        )
-
-        notions.forEachIndexed { index, notion ->
-            layout.addView(
-                creerTexte("${index + 1}. $notion", 16f)
-            )
-        }
-
-        if (indications.isNotEmpty()) {
-            layout.addView(
-                creerTexte(
-                    "Précisions : $indications", 15f
-                )
-            )
-        }
-
-        layout.addView(
-            creerTexte(
-                "La prochaine étape permettra de " +
-                "préparer la situation d'intégration.", 16f
-            )
-        )
-
-        val retour = Button(this).apply {
-            text = "Modifier les notions"
-            setOnClickListener {
-                afficherSaisieNotions()
-            }
-        }
-
-        layout.addView(retour)
-        setContentView(layout)
     }
+
+    if (indications.isNotEmpty()) {
+        layout.addView(
+            creerTexte("Précisions : $indications", 15f)
+        )
+    }
+
+    layout.addView(
+        creerTexte(
+            "Vos choix sont prêts. Vous pouvez passer " +
+            "à la préparation de la situation.", 16f
+        )
+    )
+
+    val generer = Button(this).apply {
+        text = "Générer la situation"
+        setOnClickListener {
+            afficherGenerationEnPreparation(notions, indications)
+        }
+    }
+
+    layout.addView(generer)
+
+    val retour = Button(this).apply {
+        text = "Modifier les notions"
+        setOnClickListener {
+            afficherSaisieNotions()
+        }
+    }
+
+    layout.addView(retour)
+    setContentView(layout)
+}
+
+private fun afficherGenerationEnPreparation(
+    notions: List<String>,
+    indications: String
+) {
+    val layout = creerLayout()
+
+    layout.addView(
+        creerTexte("Génération de la situation", 23f)
+    )
+
+    layout.addView(
+        creerTexte("Classe : $classeChoisie", 18f)
+    )
+
+    layout.addView(
+        creerTexte("Mode choisi : $modeChoisi", 16f)
+    )
+
+    layout.addView(
+        creerTexte(
+            "Notions à traiter :\n" +
+            notions.joinToString("\n") { "• $it" },
+            16f
+        )
+    )
+
+    layout.addView(
+        creerTexte(
+            "La banque de situations et le service d'IA " +
+            "seront intégrés dans les prochaines étapes. " +
+            "Aucune situation n'a encore été générée.",
+            16f
+        )
+    )
+
+    if (indications.isNotEmpty()) {
+        layout.addView(
+            creerTexte("Précisions : $indications", 15f)
+        )
+    }
+
+    val retour = Button(this).apply {
+        text = "Retour aux notions"
+        setOnClickListener {
+            afficherSaisieNotions()
+        }
+    }
+
+       layout.addView(retour)
+    setContentView(layout)
+}
 }
