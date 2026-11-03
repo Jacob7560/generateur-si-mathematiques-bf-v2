@@ -437,7 +437,11 @@ private fun afficherGenerationEnPreparation(
     layout.addView(
         creerTexte("Classe : $classeChoisie", 18f)
     )
-
+    
+    layout.addView(
+    creerTexte("Barème : $baremeChoisi points", 18f)
+)
+    
     layout.addView(
         creerTexte("Mode choisi : $modeChoisi", 16f)
     )
