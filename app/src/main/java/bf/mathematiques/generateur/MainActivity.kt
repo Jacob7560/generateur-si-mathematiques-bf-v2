@@ -376,7 +376,11 @@ class MainActivity : Activity() {
     layout.addView(
         creerTexte("Classe : $classeChoisie", 18f)
     )
-
+    
+    layout.addView(
+    creerTexte("Barème : $baremeChoisi points", 18f)
+)
+    
     layout.addView(
         creerTexte("Notions à mobiliser :", 19f)
     )
