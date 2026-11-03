@@ -19,7 +19,8 @@ class MainActivity : Activity() {
 
     private var modeChoisi = ""
     private var classeChoisie = ""
-
+    private var baremeChoisi = 10
+    
     private lateinit var listeNotions: LinearLayout
     private lateinit var precisions: EditText
 
@@ -171,7 +172,7 @@ class MainActivity : Activity() {
                 text = classe
                 setOnClickListener {
                     classeChoisie = classe
-                    afficherSaisieNotions()
+                    afficherChoixBareme()
                 }
             }
 
@@ -179,6 +180,59 @@ class MainActivity : Activity() {
         }
     }
 
+    private fun afficherChoixBareme() {
+    val contenu = LinearLayout(this).apply {
+        orientation = LinearLayout.VERTICAL
+        setPadding(24, 24, 24, 24)
+        setBackgroundColor(fond)
+    }
+
+    contenu.addView(
+        creerTexte("Choisir le barème", 24f)
+    )
+
+    contenu.addView(
+        creerTexte("Classe : $classeChoisie", 18f)
+    )
+
+    contenu.addView(
+        creerTexte(
+            "Sélectionnez le nombre de points de votre situation.",
+            16f
+        )
+    )
+
+    val baremes = listOf(4, 5, 10, 20)
+
+    for (bareme in baremes) {
+        val bouton = Button(this).apply {
+            text = "$bareme points"
+
+            setOnClickListener {
+                baremeChoisi = bareme
+                afficherSaisieNotions()
+            }
+        }
+
+        contenu.addView(bouton)
+    }
+
+    val retour = Button(this).apply {
+        text = "Changer de classe"
+        setOnClickListener {
+            afficherChoixClasse()
+        }
+    }
+
+    contenu.addView(retour)
+
+    val defilement = ScrollView(this).apply {
+        addView(contenu)
+    }
+
+    setContentView(defilement)
+    }
+    
     private fun afficherSaisieNotions() {
         champsNotions.clear()
 
