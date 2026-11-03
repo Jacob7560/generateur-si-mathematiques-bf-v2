@@ -479,4 +479,110 @@ private fun afficherGenerationEnPreparation(
        layout.addView(retour)
     setContentView(layout)
 }
+
+private fun afficherGrilleCorrection() {
+
+    val layout = creerLayout()
+
+    layout.gravity = Gravity.TOP
+
+    layout.addView(
+        creerTexte("GRILLE DE CORRECTION", 23f)
+    )
+
+    layout.addView(
+        creerTexte("Barème : $baremeChoisi points", 18f)
+    )
+
+    val grille = listOf(
+        Triple("CM1 – Pertinence", 1.5, listOf(
+            "Conversion" to 0.5,
+            "Addition des volumes" to 0.5,
+            "Conclusion : note au président" to 0.5
+        )),
+        Triple("CM2 – Utilisation correcte des outils mathématiques", 4.5, listOf(
+            "Écriture de l'expression mathématique" to 0.25,
+            "Mise des nombres sous une forme permettant l'opération" to 0.5,
+            "Étapes dans un ordre logique" to 0.5,
+            "Transformation des puissances de 10" to 0.5,
+            "Factorisation par une puissance de 10" to 0.5,
+            "Égalités successives correctes" to 0.25,
+            "Conversion de 3,6 × 10³ en 0,36 × 10⁴" to 0.5,
+            "Calcul de 2,4 + 0,36" to 0.5,
+            "Obtention de 2,76 × 10⁴" to 0.5,
+            "Conversion en 27 600 litres" to 0.5
+        )),
+        Triple("CM3 – Cohérence du raisonnement et du résultat", 3.0, listOf(
+            "Enchaînement logique des étapes" to 1.25,
+            "Adéquation entre conclusion et démarche" to 0.75,
+            "Conformité de la production finale à la demande" to 1.0
+        )),
+        Triple("CP – Perfectionnement", 1.0, listOf(
+            "Travail lisible et bien organisé" to 0.5,
+            "Absence de ratures" to 0.25,
+            "Résultat final correctement encadré" to 0.25
+        ))
+    )
+
+    val totaux = if (baremeChoisi == 4) {
+        listOf(0.5, 1.75, 1.25, 0.5)
+    } else {
+        listOf(
+            1.5 * baremeChoisi / 10.0,
+            4.5 * baremeChoisi / 10.0,
+            3.0 * baremeChoisi / 10.0,
+            1.0 * baremeChoisi / 10.0
+        )
+    }
+
+    for (i in grille.indices) {
+
+        val critere = grille[i]
+        val totalCritere = totaux[i]
+
+        layout.addView(
+            creerTexte(critere.first, 19f)
+        )
+
+        for (indicateur in critere.third) {
+
+            val points = indicateur.second *
+                totalCritere / critere.second
+
+            layout.addView(
+                creerTexte(
+                    "${indicateur.first} : " +
+                    "%.3f".format(points) + " pt",
+                    15f
+                )
+            )
+        }
+
+        layout.addView(
+            creerTexte(
+                "Total : $totalCritere points",
+                17f
+            )
+        )
+    }
+
+    layout.addView(
+        creerTexte("TOTAL GÉNÉRAL : $baremeChoisi points", 20f)
+    )
+
+    val retour = Button(this).apply {
+        text = "Retour aux notions"
+        setOnClickListener {
+            afficherSaisieNotions()
+        }
+    }
+
+    layout.addView(retour)
+
+    val defilement = ScrollView(this).apply {
+        addView(layout)
+    }
+
+    setContentView(defilement)
+}
 }
