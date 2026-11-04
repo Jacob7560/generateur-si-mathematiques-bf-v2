@@ -11,6 +11,15 @@ import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.ScrollView
+import android.os.Handler
+import android.os.Looper
+import org.json.JSONObject
+import org.json.JSONArray
+import java.net.URL
+import java.net.HttpURLConnection
+import java.io.OutputStream
+import java.io.BufferedReader
+import java.io.InputStreamReader
 
 class MainActivity : Activity() {
 
@@ -416,7 +425,7 @@ class MainActivity : Activity() {
     layout.addView(retour)
     setContentView(layout)
 }
-
+    
 private fun afficherGenerationEnPreparation(
     notions: List<String>,
     indications: String
@@ -424,61 +433,176 @@ private fun afficherGenerationEnPreparation(
     val layout = creerLayout()
 
     layout.addView(
-        creerTexte("Génération de la situation", 23f)
-    )
-
-    layout.addView(
-        creerTexte("Classe : $classeChoisie", 18f)
-    )
-    
-    layout.addView(
-    creerTexte("Barème : $baremeChoisi points", 18f)
-)
-    
-    layout.addView(
-        creerTexte("Mode choisi : $modeChoisi", 16f)
+        creerTexte("Génération de la situation...", 23f)
     )
 
     layout.addView(
         creerTexte(
-            "Notions à traiter :\n" +
-            notions.joinToString("\n") { "• $it" },
+            "L'intelligence artificielle prépare votre situation. Veuillez patienter.",
             16f
         )
     )
 
-    layout.addView(
-        creerTexte(
-            "La banque de situations et le service d'IA " +
-            "seront intégrés dans les prochaines étapes. " +
-            "Aucune situation n'a encore été générée.",
-            16f
-        )
-    )
-
-    if (indications.isNotEmpty()) {
-        layout.addView(
-            creerTexte("Précisions : $indications", 15f)
-        )
-    }
-
-        val retour = Button(this).apply {
+    val retour = Button(this).apply {
         text = "Retour aux notions"
         setOnClickListener {
             afficherSaisieNotions()
         }
     }
 
-    val grille = Button(this).apply {
-        text = "Voir la grille de correction"
+    layout.addView(retour)
+    setContentView(layout)
+
+    Thread {
+        try {
+            val url = URL(
+                "https://generateur-si-maths-bf-api.jacobbonsa2.workers.dev/generate"
+            )
+
+            val connexion = url.openConnection() as HttpURLConnection
+
+            connexion.requestMethod = "POST"
+            connexion.connectTimeout = 30000
+            connexion.readTimeout = 90000
+            connexion.doOutput = true
+            connexion.setRequestProperty(
+                "Content-Type",
+                "application/json; charset=UTF-8"
+            )
+
+            val demande = JSONObject().apply {
+                put("classe", classeChoisie)
+                put("notions", JSONArray(notions))
+                put("bareme", baremeChoisi)
+                put("indications", indications)
+            }
+
+            connexion.outputStream.use { sortie ->
+                sortie.write(demande.toString().toByteArray(Charsets.UTF_8))
+            }
+
+            val codeReponse = connexion.responseCode
+
+            val flux = if (codeReponse in 200..299) {
+                connexion.inputStream
+            } else {
+                connexion.errorStream
+            }
+
+            val lecteur = BufferedReader(
+                InputStreamReader(flux, Charsets.UTF_8)
+            )
+
+            val reponse = lecteur.use { it.readText() }
+            connexion.disconnect()
+
+            val resultatJson = JSONObject(reponse)
+
+            if (codeReponse in 200..299 &&
+                resultatJson.optString("statut") == "succes"
+            ) {
+                val resultat = resultatJson.optString("resultat")
+
+                runOnUiThread {
+                    afficherResultatIA(resultat)
+                }
+            } else {
+                val message = resultatJson.optString(
+                    "message",
+                    "Le serveur n'a pas pu générer la situation."
+                )
+
+                runOnUiThread {
+                    afficherErreurIA(message)
+                }
+            }
+
+        } catch (e: Exception) {
+            runOnUiThread {
+                afficherErreurIA(
+                    "Connexion impossible : ${e.message}"
+                )
+            }
+        }
+    }.start()
+}
+
+private fun afficherResultatIA(resultat: String) {
+    val contenu = LinearLayout(this).apply {
+        orientation = LinearLayout.VERTICAL
+        setPadding(24, 24, 24, 24)
+        setBackgroundColor(fond)
+    }
+
+    contenu.addView(
+        creerTexte("SITUATION GÉNÉRÉE", 24f)
+    )
+
+    contenu.addView(
+        creerTexte("Classe : $classeChoisie", 18f)
+    )
+
+    contenu.addView(
+        creerTexte("Barème : $baremeChoisi points", 18f)
+    )
+
+    val texteResultat = TextView(this).apply {
+        text = resultat
+        textSize = 16f
+        setTextColor(Color.BLACK)
+        setPadding(8, 16, 8, 16)
+    }
+
+    contenu.addView(texteResultat)
+
+    val retour = Button(this).apply {
+        text = "Retour aux notions"
         setOnClickListener {
-            afficherGrilleCorrection()
+            afficherSaisieNotions()
+        }
+    }
+
+    contenu.addView(retour)
+
+    val defilement = ScrollView(this).apply {
+        addView(contenu)
+    }
+
+    setContentView(defilement)
+}
+
+private fun afficherErreurIA(message: String) {
+    val layout = creerLayout()
+
+    layout.addView(
+        creerTexte("Échec de la génération", 23f)
+    )
+
+    layout.addView(
+        creerTexte(message, 16f)
+    )
+
+    val recommencer = Button(this).apply {
+        text = "Réessayer"
+        setOnClickListener {
+            afficherGenerationEnPreparation(
+                champsNotions.map { it.text.toString().trim() }
+                    .filter { it.isNotEmpty() },
+                precisions.text.toString().trim()
+            )
+        }
+    }
+
+    layout.addView(recommencer)
+
+    val retour = Button(this).apply {
+        text = "Retour aux notions"
+        setOnClickListener {
+            afficherSaisieNotions()
         }
     }
 
     layout.addView(retour)
-    layout.addView(grille)
-
     setContentView(layout)
 }
 
