@@ -1,12 +1,14 @@
 
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <uses-permission android:name="android.permission.INTERNET" />
+
     <application
         android:allowBackup="false"
         android:label="Generateur SI Maths BF"
         android:supportsRtl="true"
         android:theme="@android:style/Theme.Material.Light.NoActionBar">
-
+        
         <activity
             android:name="bf.mathematiques.generateur.MainActivity"
             android:exported="true">
