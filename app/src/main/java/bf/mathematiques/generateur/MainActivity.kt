@@ -469,14 +469,23 @@ private fun afficherGenerationEnPreparation(
         )
     }
 
-    val retour = Button(this).apply {
+        val retour = Button(this).apply {
         text = "Retour aux notions"
         setOnClickListener {
             afficherSaisieNotions()
         }
     }
 
-       layout.addView(retour)
+    val grille = Button(this).apply {
+        text = "Voir la grille de correction"
+        setOnClickListener {
+            afficherGrilleCorrection()
+        }
+    }
+
+    layout.addView(retour)
+    layout.addView(grille)
+
     setContentView(layout)
 }
 
