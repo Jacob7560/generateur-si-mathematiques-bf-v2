@@ -124,13 +124,6 @@ class MainActivity : Activity() {
             creerTexte("Mode : $modeChoisi", 16f)
         )
 
-        ajouterSection(contenu, "ENSEIGNEMENT PRIMAIRE")
-
-        ajouterClasses(
-            contenu,
-            listOf("CP1", "CP2", "CE1", "CE2", "CM1", "CM2")
-        )
-
         ajouterSection(contenu, "PREMIER CYCLE")
 
         ajouterClasses(
